@@ -1,0 +1,44 @@
+name: Stock Tracker
+
+on:
+  schedule:
+    - cron: '0 12 * * *'
+    - cron: '0 17 * * *'
+
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  track:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Packages
+        run: |
+          pip install yfinance pandas
+
+      - name: Run Tracker
+        run: python stock_tracker.py
+
+      - name: Commit Updated CSV
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+
+          git add stock_prices.csv
+
+          git diff --cached --quiet || git commit -m "Update stock prices"
+
+          git push
